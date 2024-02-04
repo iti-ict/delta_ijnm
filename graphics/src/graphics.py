@@ -14,57 +14,7 @@ from matplotlib.patches import Patch
 from matplotlib.backends.backend_pdf import PdfPages
 import statsmodels.graphics.boxplots as smg
 
-
-def dispatch():
-    db_insert = pd.read_csv("data-quorum/db-insert.csv", index_col=0)
-    dlt_insert = pd.read_csv("data-quorum/dlt-insert.csv", index_col=0)
-
-    # Crear DataFrame de los datos
-    transaction_dispatch_df = pd.concat([dlt_insert["Simple Insert"], db_insert["Simple Insert"], dlt_insert["Intermediate Insert"],
-                                        db_insert["Intermediate Insert"], dlt_insert["Complex Insert"], db_insert["Complex Insert"]],
-                                        keys=['SimpleAsset-DLT', 'SimpleAsset-MongoDB', 'MediumAsset-DLT','MediumAsset-MongoDB',
-                                        'ComplexAsset-DLT', 'ComplexAsset-MongoDB'], axis=1, ignore_index=False, copy=False)
-
-    # Crear axis con el DF y darle formato
-    axis = transaction_dispatch_df.plot(figsize=(10, 6), xlim=[0, 40000], logy=False,
-                                        color=(['tab:red', 'tab:red', 'tab:purple', 'tab:purple', 'tab:blue', 'tab:blue']),
-                                        style=(['--', '-'] * 3), marker="o")
-    axis.set_title("Transaction dispatch: DLT and MongoDB", style='italic')
-    axis.legend()
-
-    # Eje X
-    axis.set_xticks(np.arange(0,40000,step=5000))
-    xlabels = np.array(axis.get_xticks()/1000)
-    axis.set_xticklabels(xlabels.astype(int))
-    axis.set_xlabel("Number of assets [K-assets]")
-
-    # Eje Y
-    axis.set_yscale("log")
-    axis.set_ylabel("Latency [ms]")
-
-def rate():
-    db_insert = pd.read_csv("data-quorum/db-insert.csv", index_col=0)
-    dlt_insert = pd.read_csv("data-quorum/dlt-insert.csv", index_col=0)
-
-    transaction_rate_df = pd.concat([dlt_insert["tps simple"], db_insert["tps simple"], dlt_insert["tps intermediate"],
-                                     db_insert["tps intermediate"], dlt_insert["tps complex"], db_insert["tps complex"]],
-                                    keys=['SimpleAsset-DLT', 'SimpleAsset-MongoDB', 'MediumAsset-DLT',
-                                          'MediumAsset-MongoDB', 'ComplexAsset-DLT', 'ComplexAsset-MongoDB'],
-                                    axis=1, ignore_index=False, copy=False)
-    axis = transaction_rate_df.plot(figsize=(10, 6), xlim=[0, 40000], logy=False,
-                                    color=(
-                                        ['tab:red', 'tab:red', 'tab:purple', 'tab:purple', 'tab:blue', 'tab:blue']),
-                                    style=(['--', '-'] * 3), marker="o")
-    axis.set_yscale("log")
-    axis.legend()
-    axis.set_xlabel("Number of assets [K-assets]")
-    axis.set_xticks(np.arange(0,40000,step=5000))
-    xlabels = np.array(axis.get_xticks()/1000)
-    axis.set_xticklabels(xlabels.astype(int))
-    axis.set_ylabel("Transactions per second [TPS]")
-    axis.set_title("Transaction dispatch: DLT and MongoDB", style='italic')
-
-#gráfica de líneas kv
+# key-value lines plot
 def key_value_reads():
     params = {'legend.fontsize': 12,
               'figure.figsize': (16, 10),
@@ -74,18 +24,18 @@ def key_value_reads():
               'ytick.labelsize': '14'}
     plt.rcParams.update(params)
 
-    hlf_kv = pd.read_excel('../data/data-final/experimentos-delta-hlf-mongo.ods', sheet_name='DLT-KV-query',
+    hlf_kv = pd.read_excel('../data/data-final/experiments-delta-hlf-mongo.ods', sheet_name='DLT-KV-query',
         header=0)
-    quo_kv = pd.read_excel('../data/data-final/experimentos-delta-quorum-mongo.ods', sheet_name='DLT-KV-query',
+    quo_kv = pd.read_excel('../data/data-final/experiments-delta-quorum-mongo.ods', sheet_name='DLT-KV-query',
         header=0)
     db_kv = pd.read_excel('../data/delta-experiments/database.ods', sheet_name='MongoDB-KV-query',
         header=0)
     pg_kv = pd.read_excel('../data/delta-experiments/database.ods', sheet_name='PostgreSQL-KV-query',
         header=0)
 
-    key_value_reads_df = pd.concat([hlf_kv["SimpleAsset-DLT"], quo_kv["SimpleAsset-DLT"], db_kv["SmallAsset-Mongo"], pg_kv["SmallAsset-PSQL"],
-                                    hlf_kv["IntermediateAsset-DLT"],quo_kv["IntermediateAsset-DLT"],db_kv["IntermediateAsset-Mongo"],pg_kv["IntermediateAsset-PSQL"],
-                                    hlf_kv["ComplexAsset-DLT"],quo_kv["ComplexAsset-DLT"],db_kv["LargeAsset-Mongo"],pg_kv["LargeAsset-PSQL"]],
+    key_value_reads_df = pd.concat([hlf_kv["SmallAsset-DLT"], quo_kv["SmallAsset-DLT"], db_kv["SmallAsset-Mongo"], pg_kv["SmallAsset-PSQL"],
+                                    hlf_kv["IntermAsset-DLT"],quo_kv["IntermAsset-DLT"],db_kv["IntermediateAsset-Mongo"],pg_kv["IntermediateAsset-PSQL"],
+                                    hlf_kv["LargeAsset-DLT"],quo_kv["LargeAsset-DLT"],db_kv["LargeAsset-Mongo"],pg_kv["LargeAsset-PSQL"]],
                                     keys=['Small asset - HLF', 'Small asset - Quorum', 'Small asset - MongoDB', 'Small asset - PostgreSQL',
                                           'Medium asset - HLF','Medium asset - Quorum', 'Medium asset - MongoDB',  'Medium asset - PostgreSQL',
                                           'Large asset - HLF','Large asset - Quorum', 'Large asset - MongoDB', 'Large asset - PostgreSQL'],
@@ -115,7 +65,8 @@ def key_value_reads():
 
     with PdfPages('key_value_reads.pdf') as pdf:
         pdf.savefig()
-#gráfica de violin completa 
+
+# full violin plot
 def plot_beans_complex():
     large = 22; med = 16; small = 12
     params = {'axes.titlesize': large,
@@ -130,32 +81,32 @@ def plot_beans_complex():
     #plt.style.use('seaborn-whitegrid')
     sns.set_style("white")
 
-    quorum_simple = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='QUORUM-SIMPLE-COMPLEX',
+    quorum_simple = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='QUORUM-SMALL-COMPLEX',
         header=0, decimal=',')
     quorum_medium = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='QUORUM-INTERMEDIATE-COMPLEX',
         header=0, decimal=',')
-    quorum_complex = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='QUORUM-COMPLEX-COMPLEX', 
+    quorum_complex = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='QUORUM-LARGE-COMPLEX', 
         header=0, decimal=',')
 
-    fabric_simple = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-SIMPLE-COMPLEX', 
+    fabric_simple = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-SMALL-COMPLEX', 
         header=0, decimal=',')
     fabric_medium = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-INTERMEDIATE-COMPLEX', 
         header=0, decimal=',')
-    fabric_complex = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-COMPLEX-COMPLEX', 
+    fabric_complex = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-LARGE-COMPLEX', 
         header=0, decimal=',')
 
-    fabric_simple_rich = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-SIMPLE-RICH', 
+    fabric_simple_rich = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-SMALL-RICH', 
         header=0, decimal=',')
     fabric_medium_rich = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-INTERMEDIATE-RICH', 
         header=0, decimal=',')
-    fabric_complex_rich = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-COMPLEX-RICH', 
+    fabric_complex_rich = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-LARGE-RICH', 
         header=0, decimal=',')
 
-    mongo_simple = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='MONGO-SIMPLE-COMPLEX', 
+    mongo_simple = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='MONGO-SMALL-COMPLEX', 
         header=0, decimal=',')
     mongo_medium = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='MONGO-INTERMEDIATE-COMPLEX', 
         header=0, decimal=',')
-    mongo_complex = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='MONGO-COMPLEX-COMPLEX', 
+    mongo_complex = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='MONGO-LARGE-COMPLEX', 
         header=0, decimal=',')
 
     postgres_simple = pd.read_excel('../data/delta-experiments/query-median-db-2-8-24-40.ods', sheet_name='PSQL-SMALL-COMPLEX', 
@@ -174,17 +125,17 @@ def plot_beans_complex():
                     fabric_complex.iloc[:,0], fabric_complex_rich.iloc[:,0],mongo_complex.iloc[:,0], postgres_complex.iloc[:,0],
                     fabric_complex.iloc[:,2], fabric_complex_rich.iloc[:,2],mongo_complex.iloc[:,2], postgres_complex.iloc[:,2],
                     fabric_complex.iloc[:,3], fabric_complex_rich.iloc[:,3],mongo_complex.iloc[:,3], postgres_complex.iloc[:,3]],
-     keys=['fabric_simple_8','rich_simple_8','mongo_simple_8', 'postgres_simple_8',
-           'fabric_simple_24','rich_simple_24','mongo_simple_24', 'postgres_simple_24',
-            'fabric_simple_40','rich_simple_40','mongo_simple_40', 'postgres_simple_40',
-            'fabric_medium_8','rich_medium_8','mongo_medium_8', 'postgres_medium_8',
-            'fabric_medium_24','rich_medium_24','mongo_medium_24', 'postgres_medium_24',
-            'fabric_medium_40','rich_medium_40','mongo_medium_40', 'postgres_medium_40',
-            'fabric_complex_8','rich_complex_8','mongo_complex_8', 'postgres_complex_8',
-            'fabric_complex_24','rich_complex_24','mongo_complex_24', 'postgres_complex_24',
-            'fabric_complex_40','rich_complex_40','mongo_complex_40', 'postgres_complex_40',],axis=1, ignore_index=True, copy=False)
+    keys=['fabric_small_8','rich_small_8','mongo_small_8', 'postgres_small_8',
+           'fabric_small_24','rich_small_24','mongo_small_24', 'postgres_small_24',
+            'fabric_small_40','rich_small_40','mongo_small_40', 'postgres_small_40',
+            'fabric_interm_8','rich_interm_8','mongo_interm_8', 'postgres_interm_8',
+            'fabric_interm_24','rich_interm_24','mongo_interm_24', 'postgres_interm_24',
+            'fabric_interm_40','rich_interm_40','mongo_interm_40', 'postgres_interm_40',
+            'fabric_large_8','rich_large_8','mongo_large_8', 'postgres_large_8',
+            'fabric_large_24','rich_large_24','mongo_large_24', 'postgres_large_24',
+            'fabric_large_40','rich_large_40','mongo_large_40', 'postgres_large_40',],axis=1, ignore_index=True, copy=False)
     plt.figure(figsize=(13,10), dpi= 80)
-    axis = sns.violinplot(data=df, scale='width', inner='quartile', cut=0)
+    sns.violinplot(data=df, scale='width', inner='quartile', cut=0)
     plt.vlines(2.5, 0, 10000, linestyles ="dotted", colors ="k")
     plt.vlines(5.5, 0, 10000, linestyles ="dotted", colors ="k")
     plt.vlines(8.5, 0, 10000, linestyles ="dotted", colors ="k")
@@ -200,7 +151,7 @@ def plot_beans_complex():
     plt.xlabel("K-Assets")
     plt.title('Violin Plot of complex queries', fontsize=22)
 
-#gráfica de violín separada en small, medium y large
+# violin plot split into small, medium and large
 def plot_beans_complex_sinq():
     large = 22; med = 18; small = 12
     params = {'axes.titlesize': large,
@@ -215,17 +166,17 @@ def plot_beans_complex_sinq():
     #plt.style.use('seaborn-whitegrid')
     sns.set_style("white")
 
-    fabric_simple = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-SIMPLE-COMPLEX', 
+    fabric_simple = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-SMALL-COMPLEX', 
         header=0, decimal=',')
     fabric_medium = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-INTERMEDIATE-COMPLEX', 
         header=0, decimal=',')
-    fabric_complex = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-COMPLEX-COMPLEX', 
+    fabric_complex = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-LARGE-COMPLEX', 
         header=0, decimal=',')
-    fabric_simple_rich = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-SIMPLE-RICH', 
+    fabric_simple_rich = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-SMALL-RICH', 
         header=0, decimal=',')
     fabric_medium_rich = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-INTERMEDIATE-RICH', 
         header=0, decimal=',')
-    fabric_complex_rich = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-COMPLEX-RICH', 
+    fabric_complex_rich = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-LARGE-RICH', 
         header=0, decimal=',')
     
     df = pd.concat([fabric_simple.iloc[:,0], fabric_simple_rich.iloc[:,0],
@@ -237,15 +188,15 @@ def plot_beans_complex_sinq():
                     fabric_complex.iloc[:,0], fabric_complex_rich.iloc[:,0],
                     fabric_complex.iloc[:,2], fabric_complex_rich.iloc[:,2],
                     fabric_complex.iloc[:,3], fabric_complex_rich.iloc[:,3]],
-     keys=['fabric_simple_2','rich_simple_2',
-           'fabric_simple_24','rich_simple_24',
-            'fabric_simple_40','rich_simple_40',
-            'fabric_medium_2','rich_medium_2',
-            'fabric_medium_24','rich_medium_24',
-            'fabric_medium_40','rich_medium_40',
-            'fabric_complex_2','rich_complex_2',
-            'fabric_complex_24','rich_complex_24',
-            'fabric_complex_40','rich_complex40'],axis=1, ignore_index=True, copy=False)
+    keys=['fabric_small_2','rich_small_2',
+           'fabric_small_24','rich_small_24',
+            'fabric_small_40','rich_small_40',
+            'fabric_interm_2','rich_interm_2',
+            'fabric_interm_24','rich_interm_24',
+            'fabric_interm_40','rich_interm_40',
+            'fabric_large_2','rich_large_2',
+            'fabric_large_24','rich_large_24',
+            'fabric_large_40','rich_large40'],axis=1, ignore_index=True, copy=False)
     plt.figure(figsize=(13,10), dpi= 80)
     pal=(['#ec7063','#f5b7b1']*9)
     axis = sns.violinplot(data=df, scale='width', inner='quartile', cut=0,palette=pal)
@@ -279,9 +230,9 @@ def plot_beans_complex_sinq():
     quo = mpatches.Patch(color='#f5b7b1', label='HLF (enhanced)')
     plt.legend(handles=[hlf,quo],loc=5, bbox_to_anchor=(0.3,0.85),shadow=True)
     #plt.title('Violin Plot of complex queries: Fabric and Fabric Rich', fontsize=22)
-    plt.savefig('violin_fabric_comples.svg',format='svg')
+    plt.savefig('violin_fabric_complex.svg',format='svg')
 
-#gráfica de violín
+# violin plot for quorum
 def plot_beans_quo():
     large = 22; med = 18; small = 12
     params = {'axes.titlesize': large,
@@ -296,11 +247,11 @@ def plot_beans_quo():
     #plt.style.use('seaborn-whitegrid')
     sns.set_style("white")
 
-    quorum_simple = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='QUORUM-SIMPLE-COMPLEX',
+    quorum_simple = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='QUORUM-SMALL-COMPLEX',
         header=0, decimal=',')
     quorum_medium = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='QUORUM-INTERMEDIATE-COMPLEX',
         header=0, decimal=',')
-    quorum_complex = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='QUORUM-COMPLEX-COMPLEX', 
+    quorum_complex = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='QUORUM-LARGE-COMPLEX', 
         header=0, decimal=',')
     
     df = pd.concat([quorum_simple.iloc[:,0],quorum_simple.iloc[:,2],quorum_simple.iloc[:,3],
@@ -321,7 +272,7 @@ def annotate_axes(ax, text, fontsize=18):
     ax.text(0.5, 0.5, text, transform=ax.transAxes,
             ha="center", va="center", fontsize=fontsize, color="darkgrey")
 
-#gráfica de violín mosaico
+# mosaic of violin plots
 def plot_beans_mosaico():
     quorum_simple = pd.read_excel('../data/data-quorum/query-median-2-8-24-40.ods', sheet_name='QUORUM-SMALL-COMPLEX',
         header=0, usecols='A,C,D')
@@ -337,7 +288,8 @@ def plot_beans_mosaico():
                                 ['lower left','lower','lower right']],
                                 figsize=(10,7),sharex=False, gridspec_kw={'hspace': 0.05, 'wspace': 0.5},)
     s=14
-    #VIOLINES SIMPLE
+
+    # small violins
     ax = sns.violinplot(data=quorum_simple, scale='width', inner='quartile', cut=0, ax=axd['lower left'], color='#5499c7')
     ax.set_ylim([2e+3,4e+3])
     ax.set_yticks([2000,2500,3000,3500],['2e3', '2.5e3', '3e3', '3.5e3'])
@@ -351,7 +303,7 @@ def plot_beans_mosaico():
     ax.set_title('Small Asset',fontsize=s)
     ax.set_yticks([8.5e+05,8.75e+05,9e+05,9.25e+05,9.5e+05],['8.5e5','8.75e5','9e5','9.25e5','9.5e5'])
 
-    #VIOLINES MEDIUM
+    # medium violins
     ax = sns.violinplot(data=quorum_medium, scale='width', inner='quartile', cut=0, ax=axd['lower'], color='#5499c7')
     ax.set_ylim([2e+4,4e+4])
     ax.set_yticks([2e+04,2.5e+04,3e+04,3.5e+04],['2e4','2.5e4','3e4','3.5e4'])
@@ -367,7 +319,7 @@ def plot_beans_mosaico():
     #ax.yaxis.get_major_formatter().set_scientific(False)
     
 
-    #VIOLINES COMPLEX
+    # large violins
     ax = sns.violinplot(data=quorum_complex, scale='width', inner='quartile', cut=0, ax=axd['lower right'], color='#5499c7')
     ax.set_ylim([2.4e+5,3e+5])
     ax.set_yticks([2.4e+5,2.5e+5,2.6e+5,2.7e+5,2.8e+5,2.9e+5],['2.4e5','2.5e5','2.6e5','2.7e5','2.8e5','2.9e5'])
@@ -381,7 +333,7 @@ def plot_beans_mosaico():
     with PdfPages('plot_beans_mosaico.pdf') as pdf:
         pdf.savefig()
         
-#gráfica de violín kv
+# key-value violin plot
 def plot_beans_kv():
     large = 22; med = 18; small = 12
     params = {'axes.titlesize': large,
@@ -396,38 +348,38 @@ def plot_beans_kv():
     #plt.style.use('seaborn-whitegrid')
     sns.set_style("white")
 
-    quorum_simple = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='QUORUM-SIMPLE-KV',
+    quorum_small = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='QUORUM-SMALL-KV',
         header=0, decimal=',')
-    quorum_medium = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='QUORUM-INTERMEDIATE-KV',
+    quorum_interm = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='QUORUM-INTERMEDIATE-KV',
         header=0, decimal=',')
-    quorum_complex = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='QUORUM-COMPLEX-KV', 
+    quorum_large = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='QUORUM-LARGE-KV', 
         header=0, decimal=',')
         
-    fabric_simple = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-SIMPLE-KV', 
+    fabric_small = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-SMALL-KV', 
         header=0, decimal=',')
-    fabric_medium = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-INTERMEDIATE-KV', 
+    fabric_interm = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-INTERMEDIATE-KV', 
         header=0, decimal=',')
-    fabric_complex = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-COMPLEX-KV', 
+    fabric_large = pd.read_excel('../data/violin/query-median-2-8-24-40.ods', sheet_name='FABRIC-LARGE-KV', 
         header=0, decimal=',')
     
-    df = pd.concat([fabric_simple.iloc[:,0], quorum_simple.iloc[:,0],
-                    fabric_simple.iloc[:,2], quorum_simple.iloc[:,2],
-                    fabric_simple.iloc[:,3], quorum_simple.iloc[:,3],
-                    fabric_medium.iloc[:,0], quorum_medium.iloc[:,0],
-                    fabric_medium.iloc[:,2], quorum_medium.iloc[:,2],
-                    fabric_medium.iloc[:,3], quorum_medium.iloc[:,3],
-                    fabric_complex.iloc[:,0], quorum_complex.iloc[:,0],
-                    fabric_complex.iloc[:,2], quorum_complex.iloc[:,2],
-                    fabric_complex.iloc[:,3], quorum_complex.iloc[:,3]],
-     keys=['fabric_simple_2', 'quorum_simple_2',
-           'fabric_simple_24', 'quorum_simple_24',
-            'fabric_simple_40', 'quorum_simple_40',
-            'fabric_medium_2', 'quorum_medium_2',
-            'fabric_medium_24', 'quorum_medium_24',
-            'fabric_medium_40', 'quorum_medium_40',
-            'fabric_complex_2', 'quorum_complex_2'
-            'fabric_complex_24', 'quorum_complex_24'
-            'fabric_complex_40', 'quorum_complex_40','1','2'],axis=1, ignore_index=True, copy=False)
+    df = pd.concat([fabric_small.iloc[:,0], quorum_small.iloc[:,0],
+                    fabric_small.iloc[:,2], quorum_small.iloc[:,2],
+                    fabric_small.iloc[:,3], quorum_small.iloc[:,3],
+                    fabric_interm.iloc[:,0], quorum_interm.iloc[:,0],
+                    fabric_interm.iloc[:,2], quorum_interm.iloc[:,2],
+                    fabric_interm.iloc[:,3], quorum_interm.iloc[:,3],
+                    fabric_large.iloc[:,0], quorum_large.iloc[:,0],
+                    fabric_large.iloc[:,2], quorum_large.iloc[:,2],
+                    fabric_large.iloc[:,3], quorum_large.iloc[:,3]],
+    keys=['fabric_small_2', 'quorum_small_2',
+           'fabric_small_24', 'quorum_small_24',
+            'fabric_small_40', 'quorum_small_40',
+            'fabric_interm_2', 'quorum_interm_2',
+            'fabric_interm_24', 'quorum_interm_24',
+            'fabric_interm_40', 'quorum_interm_40',
+            'fabric_large_2', 'quorum_large_2'
+            'fabric_large_24', 'quorum_large_24'
+            'fabric_large_40', 'quorum_large_40','1','2'],axis=1, ignore_index=True, copy=False)
     
     pal=(['#ec7063','#5499c7']*9)
     plt.figure(figsize=(13,10), dpi= 80)
@@ -466,7 +418,7 @@ def plot_beans_kv():
     #plt.title('Violin Plot of key-value queries', fontsize=22)
     plt.savefig('violin_kv.svg',format='svg')
 
-#gráfica de líneas 
+# lines plot
 def complex_new():
     params = {'legend.fontsize': 11,
         'figure.figsize': (16, 10),
@@ -476,13 +428,13 @@ def complex_new():
         'ytick.labelsize':'14'}
     plt.rcParams.update(params)
 
-    fabric1 = pd.read_excel('../data/data-final/experimentos-delta-hlf-mongo.ods', sheet_name='DLT-complex-query', 
+    fabric1 = pd.read_excel('../data/data-final/experiments-delta-hlf-mongo.ods', sheet_name='DLT-complex-query', 
         header=0, index_col=0, usecols='A,B,D,F')
         
-    fabric2 = pd.read_excel('../data/data-final/experimentos-delta-hlf-mongo.ods', sheet_name='DLT-complex-query', 
+    fabric2 = pd.read_excel('../data/data-final/experiments-delta-hlf-mongo.ods', sheet_name='DLT-complex-query', 
         header=0, index_col=0, usecols='A,C,E,G')
 
-    quorum = pd.read_excel('../data/data-final/experimentos-delta-quorum-mongo.ods', sheet_name='DLT-complex-query', 
+    quorum = pd.read_excel('../data/data-final/experiments-delta-quorum-mongo.ods', sheet_name='DLT-complex-query', 
         header=0, index_col=0, usecols='A,B,C,D')
 
     mongo = pd.read_excel('../data/delta-experiments/database.ods', sheet_name='MongoDB-complex-query', 
@@ -528,23 +480,23 @@ def complex_new():
     with PdfPages('complex_new.pdf') as pdf:
         pdf.savefig()
 
-#gráfica de barras 
+# bar plot
 def stacked_hlf():
-    proc = pd.read_excel('../data/data-final/delta+mongo_insert_sync.ods', sheet_name='Hoja1',
+    proc = pd.read_excel('../data/data-final/delta+mongo_insert_sync_hlf.ods', sheet_name='Hoja1',
         header=0, index_col=0, usecols='A,B,C,D')
     proc = proc.stack().tolist()
     
-    ins = pd.read_excel('../data/data-final/delta+mongo_insert_sync.ods', sheet_name='Hoja1', 
+    ins = pd.read_excel('../data/data-final/delta+mongo_insert_sync_hlf.ods', sheet_name='Hoja1', 
         header=0, index_col=0, usecols='A,E,F,G')
     ins = ins.stack().tolist()
 
     labels = ['2000','24000','40000','2','24','40','1','3','6']
     fig, ax = plt.subplots()
-    ax.bar(labels, ins,label='Inserción')
-    ax.bar(labels, proc, bottom=ins, label='Procesamiento')
+    ax.bar(labels, ins,label='Insertion')
+    ax.bar(labels, proc, bottom=ins, label='Processing')
     plt.legend()
 
-#gráfica de barras doble
+# double bar plot
 def stacked_quo():
     large = 20; med = 14; small = 10
     params = {'axes.titlesize': large,
@@ -623,12 +575,12 @@ def stacked_dlt():
 
     labels = [2, 24, 40]
 
-    ins_hlf = pd.read_excel('../data/data-final/experimentos-delta-hlf-mongo.ods', sheet_name='DLT-insert',
+    ins_hlf = pd.read_excel('../data/data-final/experiments-delta-hlf-mongo.ods', sheet_name='DLT-insert',
         header=0, index_col=0)
     ins_hlf = ins_hlf.loc[[i * 1000 for i in labels]]
     ins_hlf = ins_hlf.transpose().stack().to_list()
 
-    ins_quo = pd.read_excel('../data/data-final/experimentos-delta-quorum-mongo.ods', sheet_name='DLT-insert',
+    ins_quo = pd.read_excel('../data/data-final/experiments-delta-quorum-mongo.ods', sheet_name='DLT-insert',
         header=0, index_col=0)
     ins_quo = ins_quo.loc[[i * 1000 for i in labels]]
     ins_quo = ins_quo.transpose().stack().to_list()
